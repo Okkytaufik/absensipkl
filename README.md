@@ -1,1 +1,707 @@
-# absensipkl
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Multi-User & Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome untuk Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 pb-12">
+
+    <!-- Custom Notification Toast -->
+    <div id="toast" class="fixed top-5 right-5 z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 max-w-sm w-full bg-white rounded-2xl p-4 shadow-xl border border-slate-100 flex items-center space-x-3 pointer-events-none">
+        <div id="toastIcon" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"></div>
+        <div>
+            <h4 id="toastTitle" class="font-bold text-sm text-slate-800">Pemberitahuan</h4>
+            <p id="toastBody" class="text-xs text-slate-500"></p>
+        </div>
+    </div>
+
+    <!-- SECTION 1: LOGIN & REGISTER VIEW -->
+    <div id="authContainer" class="min-h-screen flex items-center justify-center p-4 bg-slate-100">
+        <div class="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="inline-flex p-3 bg-indigo-50 rounded-2xl text-indigo-600 mb-3">
+                    <i class="fa-solid fa-user-lock text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">PresensiKita</h2>
+                <p class="text-xs text-slate-500 mt-1">Sistem Absensi Multi-User & Manajemen</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Username</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="loginUsername" required placeholder="Masukkan username" class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-key"></i></span>
+                        <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i> Masuk
+                </button>
+            </form>
+
+            <!-- Register Form (Hidden by Default) -->
+            <form id="registerForm" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Lengkap</label>
+                    <input type="text" id="regFullName" required placeholder="Contoh: Budi Santoso" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">NIP / ID Karyawan</label>
+                    <input type="text" id="regNip" required placeholder="Contoh: 2024001" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Username</label>
+                    <input type="text" id="regUsername" required placeholder="Username baru" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+                    <input type="password" id="regPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Daftar Akun Karyawan
+                </button>
+            </form>
+
+            <div class="mt-6 pt-6 border-t border-slate-100 text-center">
+                <button id="toggleAuthBtn" class="text-xs font-semibold text-indigo-600 hover:underline">Belum punya akun? Daftar Karyawan Baru</button>
+            </div>
+
+            <!-- Demo Credentials Hint -->
+            <div class="mt-6 bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
+                <p class="font-semibold text-slate-700"><i class="fa-solid fa-circle-info mr-1"></i> Akun Demo:</p>
+                <p>• <b>Admin:</b> admin / admin123</p>
+                <p>• <b>Karyawan 1:</b> budi / 123456</p>
+                <p>• <b>Karyawan 2:</b> siti / 123456</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2: DASHBOARD VIEW (ADMIN & KARYAWAN) -->
+    <div id="appContainer" class="hidden">
+        
+        <!-- Navbar -->
+        <header class="bg-indigo-600 text-white shadow-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white/10 p-2.5 rounded-xl border border-white/20">
+                        <i class="fa-solid font-bold fa-clipboard-user text-2xl text-indigo-100"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight">PresensiKita</h1>
+                        <p id="userRoleBadge" class="text-xs text-indigo-200 font-medium">Logged in</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden sm:block">
+                        <p id="navUserName" class="text-sm font-semibold">User Name</p>
+                        <p id="currentDate" class="text-xs text-indigo-200">--/--/----</p>
+                    </div>
+                    <button id="logoutBtn" class="bg-indigo-700 hover:bg-rose-600 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border border-indigo-500/30 flex items-center gap-2">
+                        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
+            
+            <!-- USER/KARYAWAN VIEW SECTION -->
+            <div id="employeeDashboard" class="hidden space-y-6">
+                <!-- User Action Card -->
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 space-y-3">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-clock text-indigo-600"></i> Presensi Hari Ini
+                        </h3>
+                        <div id="liveClock" class="text-3xl font-extrabold text-slate-800 tracking-tight">00:00:00 WIB</div>
+                        <p class="text-xs text-slate-500">Silakan lakukan pencatatan jam masuk dan jam pulang Anda untuk hari ini.</p>
+                    </div>
+
+                    <!-- Absen Action Form -->
+                    <div class="lg:col-span-2 flex flex-col justify-center space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Status Kehadiran</label>
+                                <select id="empStatus" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="Hadir">Hadir</option>
+                                    <option value="Izin">Izin</option>
+                                    <option value="Sakit">Sakit</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan / Keterangan</label>
+                                <input type="text" id="empNote" placeholder="Misal: WFH / Sakit demam" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-4 pt-2">
+                            <button id="btnCheckIn" class="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                                <i class="fa-solid fa-right-to-bracket"></i> Absen Masuk
+                            </button>
+                            <button id="btnCheckOut" class="flex-1 py-3 px-4 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                                <i class="fa-solid fa-right-from-bracket"></i> Absen Pulang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal History -->
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <h3 class="text-md font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-history text-indigo-600"></i> Riwayat Absensi Saya
+                    </h3>
+                    <div class="overflow-x-auto rounded-xl border border-slate-100">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
+                                    <th class="py-3 px-4">Tanggal</th>
+                                    <th class="py-3 px-4">Jam Masuk</th>
+                                    <th class="py-3 px-4">Jam Pulang</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="empAttendanceBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN VIEW SECTION -->
+            <div id="adminDashboard" class="hidden space-y-8">
+                
+                <!-- Stat Summary -->
+                <section>
+                    <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Ringkasan Presensi Keseluruhan</h2>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                            <p class="text-xs font-medium text-slate-500">Total Absen</p>
+                            <p id="statTotal" class="text-2xl font-bold text-slate-800 mt-1">0</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-emerald-100">
+                            <p class="text-xs font-medium text-emerald-600">Hadir</p>
+                            <p id="statHadir" class="text-2xl font-bold text-emerald-700 mt-1">0</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-blue-100">
+                            <p class="text-xs font-medium text-blue-600">Izin</p>
+                            <p id="statIzin" class="text-2xl font-bold text-blue-700 mt-1">0</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-amber-100">
+                            <p class="text-xs font-medium text-amber-600">Sakit</p>
+                            <p id="statSakit" class="text-2xl font-bold text-amber-700 mt-1">0</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Admin Attendance Management -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-indigo-600"></i> Rekap Absensi Karyawan
+                            </h2>
+                            <p class="text-xs text-slate-500">Kelola dan pantau seluruh absensi</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="exportCsvBtn" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-xl transition-all shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-excel"></i> Ekspor CSV
+                            </button>
+                            <button id="clearAllBtn" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-medium rounded-xl transition-all border border-rose-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-trash-can"></i> Hapus Semua Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Bar -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="adminSearchInput" placeholder="Cari nama/NIP..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="adminFilterStatus" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="Semua">Semua Status</option>
+                                <option value="Hadir">Hadir</option>
+                                <option value="Izin">Izin</option>
+                                <option value="Sakit">Sakit</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto rounded-xl border border-slate-100">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/70 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
+                                    <th class="py-3 px-4">Tanggal</th>
+                                    <th class="py-3 px-4">Karyawan</th>
+                                    <th class="py-3 px-4">Jam Masuk</th>
+                                    <th class="py-3 px-4">Jam Pulang</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4">Keterangan</th>
+                                    <th class="py-3 px-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminAttendanceTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- User Management Section (Admin Only) -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-users-gear text-indigo-600"></i> Manajemen Akun Karyawan
+                    </h2>
+                    <div class="overflow-x-auto rounded-xl border border-slate-100">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100/70 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
+                                    <th class="py-3 px-4">Nama Lengkap</th>
+                                    <th class="py-3 px-4">NIP / ID</th>
+                                    <th class="py-3 px-4">Username</th>
+                                    <th class="py-3 px-4">Role</th>
+                                    <th class="py-3 px-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // State Initialization with Demo Data
+        const DEFAULT_USERS = [
+            { id: '1', username: 'admin', password: 'admin123', name: 'Administrator', nip: '0000', role: 'admin' },
+            { id: '2', username: 'budi', password: '123456', name: 'Budi Santoso', nip: '2024001', role: 'karyawan' },
+            { id: '3', username: 'siti', password: '123456', name: 'Siti Aminah', nip: '2024002', role: 'karyawan' }
+        ];
+
+        let users = JSON.parse(localStorage.getItem('absensi_users')) || DEFAULT_USERS;
+        let records = JSON.parse(localStorage.getItem('absensi_records')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('absensi_current_user')) || null;
+
+        // Elements
+        const authContainer = document.getElementById('authContainer');
+        const appContainer = document.getElementById('appContainer');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const toggleAuthBtn = document.getElementById('toggleAuthBtn');
+        const employeeDashboard = document.getElementById('employeeDashboard');
+        const adminDashboard = document.getElementById('adminDashboard');
+
+        // Initializer
+        window.onload = function() {
+            saveState();
+            startLiveClock();
+            checkSession();
+        };
+
+        function saveState() {
+            localStorage.setItem('absensi_users', JSON.stringify(users));
+            localStorage.setItem('absensi_records', JSON.stringify(records));
+            localStorage.setItem('absensi_current_user', JSON.stringify(currentUser));
+        }
+
+        // Live Clock & Date Helper
+        function startLiveClock() {
+            const dateSpan = document.getElementById('currentDate');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateSpan.textContent = new Date().toLocaleDateString('id-ID', options);
+
+            setInterval(() => {
+                const now = new Date();
+                const clockEl = document.getElementById('liveClock');
+                if (clockEl) {
+                    clockEl.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+                }
+            }, 1000);
+        }
+
+        // Toast Feedback Component
+        function showToast(title, message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastBody = document.getElementById('toastBody');
+
+            toastTitle.textContent = title;
+            toastBody.textContent = message;
+
+            if (type === 'success') {
+                toastIcon.className = "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-100 text-emerald-600";
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-check text-xl"></i>`;
+            } else {
+                toastIcon.className = "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-rose-100 text-rose-600";
+                toastIcon.innerHTML = `<i class="fa-solid fa-circle-xmark text-xl"></i>`;
+            }
+
+            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-100px]', 'opacity-0');
+            }, 3000);
+        }
+
+        // Authentication & Session
+        function checkSession() {
+            if (currentUser) {
+                authContainer.classList.add('hidden');
+                appContainer.classList.remove('hidden');
+                document.getElementById('navUserName').textContent = currentUser.name;
+                document.getElementById('userRoleBadge').textContent = currentUser.role === 'admin' ? 'Akses Admin' : `ID: ${currentUser.nip}`;
+
+                if (currentUser.role === 'admin') {
+                    employeeDashboard.classList.add('hidden');
+                    adminDashboard.classList.remove('hidden');
+                    renderAdminView();
+                } else {
+                    adminDashboard.classList.add('hidden');
+                    employeeDashboard.classList.remove('hidden');
+                    renderEmployeeView();
+                }
+            } else {
+                authContainer.classList.remove('hidden');
+                appContainer.classList.add('hidden');
+            }
+        }
+
+        // Toggle Auth Forms
+        toggleAuthBtn.addEventListener('click', () => {
+            if (loginForm.classList.contains('hidden')) {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                toggleAuthBtn.textContent = 'Belum punya akun? Daftar Karyawan Baru';
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                toggleAuthBtn.textContent = 'Sudah punya akun? Login Kembali';
+            }
+        });
+
+        // Handle Login
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
+
+            const foundUser = users.find(user => user.username.toLowerCase() === u.toLowerCase() && user.password === p);
+
+            if (foundUser) {
+                currentUser = foundUser;
+                saveState();
+                checkSession();
+                showToast('Login Berhasil', `Selamat datang kembali, ${currentUser.name}!`);
+            } else {
+                showToast('Gagal Login', 'Username atau password salah!', 'error');
+            }
+        });
+
+        // Handle Registration
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regFullName').value.trim();
+            const nip = document.getElementById('regNip').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+
+            if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                showToast('Pendaftaran Gagal', 'Username sudah digunakan!', 'error');
+                return;
+            }
+
+            const newUser = { id: Date.now().toString(), username, password, name, nip, role: 'karyawan' };
+            users.push(newUser);
+            saveState();
+
+            showToast('Pendaftaran Berhasil', 'Akun berhasil dibuat. Silakan login.');
+            registerForm.reset();
+            toggleAuthBtn.click();
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            saveState();
+            checkSession();
+            showToast('Logout', 'Anda telah keluar dari aplikasi.');
+        });
+
+        // EMPLOYEE ABSENSI LOGIC
+        function getTodayString() {
+            return new Date().toLocaleDateString('id-ID');
+        }
+
+        function renderEmployeeView() {
+            const todayStr = getTodayString();
+            const todayRecord = records.find(r => r.userId === currentUser.id && r.tanggal === todayStr);
+
+            const btnCheckIn = document.getElementById('btnCheckIn');
+            const btnCheckOut = document.getElementById('btnCheckOut');
+
+            if (!todayRecord) {
+                btnCheckIn.disabled = false;
+                btnCheckOut.disabled = true;
+            } else if (todayRecord && !todayRecord.jamPulang) {
+                btnCheckIn.disabled = true;
+                btnCheckOut.disabled = false;
+            } else {
+                btnCheckIn.disabled = true;
+                btnCheckOut.disabled = true;
+            }
+
+            // Render Personal Records Table
+            const empBody = document.getElementById('empAttendanceBody');
+            empBody.innerHTML = '';
+
+            const myRecords = records.filter(r => r.userId === currentUser.id).reverse();
+
+            if (myRecords.length === 0) {
+                empBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">Belum ada riwayat absensi.</td></tr>`;
+            } else {
+                myRecords.forEach(r => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-3 px-4 font-medium text-slate-700">${r.tanggal}</td>
+                        <td class="py-3 px-4 text-emerald-600 font-semibold">${r.jamMasuk || '-'}</td>
+                        <td class="py-3 px-4 text-amber-600 font-semibold">${r.jamPulang || '-'}</td>
+                        <td class="py-3 px-4">${getStatusBadge(r.status)}</td>
+                        <td class="py-3 px-4 text-slate-500">${escapeHtml(r.keterangan || '-')}</td>
+                    `;
+                    empBody.appendChild(row);
+                });
+            }
+        }
+
+        // Absen Masuk
+        document.getElementById('btnCheckIn').addEventListener('click', () => {
+            const status = document.getElementById('empStatus').value;
+            const note = document.getElementById('empNote').value.trim();
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+            const todayStr = getTodayString();
+
+            const newRecord = {
+                id: Date.now().toString(),
+                userId: currentUser.id,
+                nama: currentUser.name,
+                nip: currentUser.nip,
+                tanggal: todayStr,
+                jamMasuk: timeStr,
+                jamPulang: '',
+                status: status,
+                keterangan: note
+            };
+
+            records.unshift(newRecord);
+            saveState();
+            renderEmployeeView();
+            showToast('Absen Masuk Berhasil', `Dicatat pada ${timeStr}`);
+        });
+
+        // Absen Pulang
+        document.getElementById('btnCheckOut').addEventListener('click', () => {
+            const todayStr = getTodayString();
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+            const record = records.find(r => r.userId === currentUser.id && r.tanggal === todayStr);
+            if (record) {
+                record.jamPulang = timeStr;
+                saveState();
+                renderEmployeeView();
+                showToast('Absen Pulang Berhasil', `Dicatat pada ${timeStr}`);
+            }
+        });
+
+        // ADMIN DASHBOARD LOGIC
+        function renderAdminView() {
+            // Render Stats
+            document.getElementById('statTotal').textContent = records.length;
+            document.getElementById('statHadir').textContent = records.filter(r => r.status === 'Hadir').length;
+            document.getElementById('statIzin').textContent = records.filter(r => r.status === 'Izin').length;
+            document.getElementById('statSakit').textContent = records.filter(r => r.status === 'Sakit').length;
+
+            const searchVal = document.getElementById('adminSearchInput').value.toLowerCase();
+            const filterVal = document.getElementById('adminFilterStatus').value;
+
+            const adminBody = document.getElementById('adminAttendanceTableBody');
+            adminBody.innerHTML = '';
+
+            const filteredRecords = records.filter(r => {
+                const matchesSearch = r.nama.toLowerCase().includes(searchVal) || r.nip.toLowerCase().includes(searchVal);
+                const matchesFilter = filterVal === 'Semua' || r.status === filterVal;
+                return matchesSearch && matchesFilter;
+            });
+
+            if (filteredRecords.length === 0) {
+                adminBody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400">Tidak ada data absensi ditemukan.</td></tr>`;
+            } else {
+                filteredRecords.forEach(r => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-50 transition-colors';
+                    row.innerHTML = `
+                        <td class="py-3 px-4 text-slate-500">${r.tanggal}</td>
+                        <td class="py-3 px-4">
+                            <div class="font-semibold text-slate-800">${escapeHtml(r.nama)}</div>
+                            <div class="text-[10px] text-slate-400">NIP: ${escapeHtml(r.nip)}</div>
+                        </td>
+                        <td class="py-3 px-4 text-emerald-600 font-medium">${r.jamMasuk || '-'}</td>
+                        <td class="py-3 px-4 text-amber-600 font-medium">${r.jamPulang || '-'}</td>
+                        <td class="py-3 px-4">${getStatusBadge(r.status)}</td>
+                        <td class="py-3 px-4 text-slate-500 truncate max-w-[150px]">${escapeHtml(r.keterangan || '-')}</td>
+                        <td class="py-3 px-4 text-center">
+                            <button onclick="deleteRecord('${r.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Hapus Record">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </td>
+                    `;
+                    adminBody.appendChild(row);
+                });
+            }
+
+            renderUsersTable();
+        }
+
+        // Admin User Management Table
+        function renderUsersTable() {
+            const userBody = document.getElementById('userTableBody');
+            userBody.innerHTML = '';
+
+            users.forEach(u => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-50 transition-colors';
+                row.innerHTML = `
+                    <td class="py-3 px-4 font-semibold text-slate-800">${escapeHtml(u.name)}</td>
+                    <td class="py-3 px-4 text-slate-500">${escapeHtml(u.nip)}</td>
+                    <td class="py-3 px-4 text-slate-600">${escapeHtml(u.username)}</td>
+                    <td class="py-3 px-4">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'}">
+                            ${u.role.toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        ${u.role !== 'admin' ? `
+                            <button onclick="deleteUser('${u.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" title="Hapus User">
+                                <i class="fa-solid fa-user-xmark"></i>
+                            </button>
+                        ` : '<span class="text-xs text-slate-300">-</span>'}
+                    </td>
+                `;
+                userBody.appendChild(row);
+            });
+        }
+
+        // Delete Functions
+        window.deleteRecord = function(id) {
+            records = records.filter(r => r.id !== id);
+            saveState();
+            renderAdminView();
+            showToast('Hapus Data', 'Data absensi berhasil dihapus.');
+        };
+
+        window.deleteUser = function(id) {
+            users = users.filter(u => u.id !== id);
+            saveState();
+            renderAdminView();
+            showToast('Hapus Karyawan', 'Akun karyawan berhasil dihapus.');
+        };
+
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            records = [];
+            saveState();
+            renderAdminView();
+            showToast('Hapus Semua', 'Seluruh data absensi telah dibersihkan.');
+        });
+
+        // Search & Filter Event Listeners
+        document.getElementById('adminSearchInput').addEventListener('input', renderAdminView);
+        document.getElementById('adminFilterStatus').addEventListener('change', renderAdminView);
+
+        // Export CSV logic
+        document.getElementById('exportCsvBtn').addEventListener('click', () => {
+            if (records.length === 0) {
+                showToast('Ekspor Gagal', 'Tidak ada data absensi untuk diekspor.', 'error');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Tanggal,NIP,Nama,Jam Masuk,Jam Pulang,Status,Keterangan\n";
+
+            records.forEach(item => {
+                const row = [
+                    `"${item.tanggal}"`,
+                    `"${item.nip}"`,
+                    `"${item.nama}"`,
+                    `"${item.jamMasuk || '-'}"`,
+                    `"${item.jamPulang || '-'}"`,
+                    `"${item.status}"`,
+                    `"${item.keterangan || '-'}"`
+                ].join(",");
+                csvContent += row + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Rekap_Absensi_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('Ekspor Berhasil', 'Data absensi berhasil diunduh dalam format CSV!');
+        });
+
+        // Helper Badge UI
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'Hadir':
+                    return `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">Hadir</span>`;
+                case 'Izin':
+                    return `<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold text-[10px]">Izin</span>`;
+                case 'Sakit':
+                    return `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">Sakit</span>`;
+                default:
+                    return status;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
